@@ -1,7 +1,7 @@
 ---
 title: Port Manufacturing Content Templates from website-demo into rosedale-demo-base
 type: feat
-status: active
+status: completed
 date: 2026-04-17
 ---
 
