@@ -16,6 +16,10 @@ Canonical Rosedale OS template repo. Every Demo Creator run in `rosedale-os` ini
 | `lib/utils.ts` | `cn()` helper combining `clsx` + `tailwind-merge`. | **Preserve.** |
 | `templates/app/page.tsx` | Reference home page — KPI row + Recharts bar chart card. | **Mirror composition.** Not picked up by Next.js routing; lives here as code V0 learns from. |
 | `templates/app/[tab]/page.tsx` | Reference tab page — header + card list with status chips. | **Mirror composition** when creating files under `app/[tab]/page.tsx` per the client's tab list. |
+| `templates/app/shop-floor/page.tsx` | Industry ref — shop-floor monitor: 4-up KPIs, machine-status grid, maintenance timeline. | **Mirror for manufacturing clients** when the brief mentions OEE, machines, or production floor. |
+| `templates/app/delivery/page.tsx` | Industry ref — supply-chain dashboard: Recharts area chart + donut + at-risk PO table. | **Mirror for supply-chain / logistics briefs** (suppliers, OTD, PO risk). |
+| `templates/app/quoting/page.tsx` | Industry ref — quoting pipeline: KPIs, filter tabs, quote table, cost-breakdown bar chart. | **Mirror for quoting / estimating briefs** (CNC shops, custom-fab). |
+| `templates/components/dashboards/manufacturing-primitives.tsx` | Canonical shapes of StatCard, Sparkline, TimelineItem, StatusDot. | **Use as the source of truth** when an inlined equivalent in a page template drifts. |
 
 ## Behavior rules (MUST hold across every generated demo)
 
@@ -33,6 +37,12 @@ Canonical Rosedale OS template repo. Every Demo Creator run in `rosedale-os` ini
 - **Sidebar**: 220px fixed width on desktop, `bg-surface-sidebar`, `pt-4`. Collapses to a drawer on mobile (<768px).
 - **Main**: `bg-surface-main`, `rounded-xl` on the sidebar-adjacent corners, `max-w-[96rem]` inner container, `px-8 pt-5 pb-6`.
 - **Outer frame**: `bg-[#1a1a1a]` around the rounded main panel — gives the editorial "panel-in-a-frame" feel.
+
+## Industry templates
+
+The files under `templates/app/<slug>/page.tsx` are a menu, not a prescription. V0 picks the one whose shape best matches the client brief (manufacturing → `shop-floor` / `delivery` / `quoting`; other industries → the generic `page.tsx` / `[tab]/page.tsx`) and mirrors the composition — KPI row, card primitives, chart configuration, chip patterns — into the actual `app/` routes. The industry templates are intentionally self-contained (inline data, inline helper components) so V0 learns each as a single unit; the `manufacturing-primitives.tsx` file is the canonical shape for the building blocks when an inlined version drifts.
+
+None of these templates are routed by Next.js — `tsconfig.json` excludes `templates/` from compilation, and the directory lives outside `app/` so the App Router never sees it.
 
 ## Per-tenant theming
 
