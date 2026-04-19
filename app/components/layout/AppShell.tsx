@@ -30,7 +30,7 @@ export function AppShell({ children, brandName }: AppShellProps) {
               grid-template-columns: 220px 1fr !important;
             }
             .app-shell-sidebar { display: flex !important; }
-            .app-shell-main { border-radius: 0 12px 12px 0 !important; }
+            .app-shell-main { border-radius: 0 12px 0 0 !important; }
             .app-shell-mobile-overlay { display: none !important; }
             .app-shell-menu-btn { display: none !important; }
             .app-shell-logo { display: inline-flex !important; }
@@ -39,7 +39,7 @@ export function AppShell({ children, brandName }: AppShellProps) {
 
         <aside
           className="hidden flex-col overflow-hidden app-shell-sidebar"
-          style={{ borderRadius: "12px 0 0 12px" }}
+          style={{ borderRadius: "12px 0 0 0" }}
         >
           <Sidebar />
         </aside>
