@@ -20,6 +20,8 @@ Canonical Rosedale OS template repo. Every Demo Creator run in `rosedale-os` ini
 | `templates/app/delivery/page.tsx` | Industry ref — supply-chain dashboard: Recharts area chart + donut + at-risk PO table. | **Mirror for supply-chain / logistics briefs** (suppliers, OTD, PO risk). |
 | `templates/app/quoting/page.tsx` | Industry ref — quoting pipeline: KPIs, filter tabs, quote table, cost-breakdown bar chart. | **Mirror for quoting / estimating briefs** (CNC shops, custom-fab). |
 | `templates/components/dashboards/manufacturing-primitives.tsx` | Canonical shapes of StatCard, Sparkline, TimelineItem, StatusDot. | **Use as the source of truth** when an inlined equivalent in a page template drifts. |
+| `templates/app/chat/page.tsx` | Conversational chat surface — brand wordmark, starter-question chips, message bubbles, inline tool-call chips, send input. | **Mirror when the AI-showcase zone is "Knowledge-base chat with tools"** — either as a `/chat` tab or a right-rail on another page. |
+| `templates/app/login/page.tsx` | Sign-in page — centered card, brand wordmark, `Continue with Google` CTA, hint copy. | **Mirror for briefs that mention auth / role-based access**. The CTA is visual only; demos have no real auth. |
 
 ## Behavior rules (MUST hold across every generated demo)
 
