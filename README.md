@@ -11,7 +11,8 @@ Canonical Rosedale OS template repo. Every Demo Creator run in `rosedale-os` ini
 | `app/globals.css` | Full Rosedale OS token set (Manrope, radii, surface colors, chart palette). | **Preserve.** Tenant theming flows through CSS var overrides, not edits here. |
 | `app/layout.tsx` | Root layout with Manrope font + TooltipProvider. | **Preserve.** |
 | `app/page.tsx` | Trivial placeholder so `npm run build` passes. | **Replace** per demo with a client-specific KPI dashboard, following `templates/app/page.tsx`. |
-| `app/components/layout/*` | AppShell, TopBar, Sidebar, NavItem, nav-config. The 220px-sidebar shell. | **Preserve.** Use as-is; pass `brandName` prop to `AppShell`. |
+| `app/components/layout/*` | AppShell, TopBar, Sidebar, NavItem, nav-config, UserMenu. The 220px-sidebar shell with a right-rail sliding chat panel and a fake user avatar in the top-right. | **Preserve.** Pass `brandName`, optional `fakeUserName` / `fakeUserEmail` (for the avatar dropdown), and optional `chatStarterQuestions` (sourced from discovery enrichment) to `AppShell`. |
+| `app/components/chat/ShellChatPanel.tsx` | Inert chat panel rendered in the shell's right rail when the TopBar chat button is toggled. Brand-aware; accepts optional starter-question list. | **Preserve.** Per-demo customization happens via `AppShell` props — do not modify this file. |
 | `components/ui/*` | shadcn primitives (button, tooltip, separator). | **Preserve and import.** Add more primitives via the shadcn CLI as needed — do not reimplement. |
 | `lib/utils.ts` | `cn()` helper combining `clsx` + `tailwind-merge`. | **Preserve.** |
 | `templates/app/page.tsx` | Reference home page — KPI row + Recharts bar chart card. | **Mirror composition.** Not picked up by Next.js routing; lives here as code V0 learns from. |
