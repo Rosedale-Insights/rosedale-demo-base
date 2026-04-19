@@ -1,11 +1,12 @@
 import { AppShell } from "./components/layout/AppShell";
 
 // Placeholder root page so `npm run build` works standalone. V0 generations
-// replace this file per demo with a client-specific home page (KPIs + recent
-// activity) styled after `templates/app/page.tsx`. The shell stays intact.
+// replace this file per demo with a client-specific home page (KPIs +
+// recent activity) styled after `templates/app/page.tsx`. The shell stays
+// intact, including the sliding chat rail and fake user avatar.
 export default function HomePage() {
   return (
-    <AppShell>
+    <AppShell brandName="Rosedale">
       <div className="pt-2">
         <h1 className="text-2xl">Rosedale OS</h1>
         <p className="text-sm text-muted-foreground mt-2">
