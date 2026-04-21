@@ -49,7 +49,7 @@ export function TopBar({
             <img
               src={logoUrl}
               alt=""
-              className="size-4 rounded-sm object-contain"
+              className="size-4 rounded-xs object-contain"
             />
           )}
           {brandName}
