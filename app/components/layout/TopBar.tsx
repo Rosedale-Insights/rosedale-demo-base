@@ -9,6 +9,10 @@ interface TopBarProps {
   isChatOpen?: boolean;
   // Brand name shown in the top-left wordmark. V0 replaces per demo.
   brandName?: string;
+  // Optional favicon/logo URL. Rendered as a 16px square immediately
+  // before the wordmark. Decorative — the brandName text carries the
+  // semantic label, so alt="" is intentional.
+  logoUrl?: string;
   // Fake account displayed in the top-right. V0 can pass a believable
   // first/last name + email per demo — demos have no real auth, so this
   // is pure aesthetic.
@@ -24,6 +28,7 @@ export function TopBar({
   onChatToggle,
   isChatOpen = false,
   brandName = "Rosedale",
+  logoUrl,
   fakeUserName = "Alex Morgan",
   fakeUserEmail = "alex@rosedale.ai",
 }: TopBarProps) {
@@ -38,7 +43,15 @@ export function TopBar({
         >
           <ListIcon weight="light" className="size-5" />
         </button>
-        <span className="hidden app-shell-logo items-center text-white/90 text-sm font-semibold tracking-tight">
+        <span className="hidden app-shell-logo items-center gap-2 text-white/90 text-sm font-semibold tracking-tight">
+          {logoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt=""
+              className="size-4 rounded-sm object-contain"
+            />
+          )}
           {brandName}
         </span>
       </div>

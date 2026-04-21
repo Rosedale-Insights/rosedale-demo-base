@@ -8,14 +8,19 @@ import { TopBar } from "./TopBar";
 interface AppShellProps {
   children: ReactNode;
   brandName?: string;
+  // Optional favicon/logo URL. Rendered in the TopBar immediately
+  // before the wordmark. Source of truth resolves on the Rosedale side
+  // (favicon extracted from the prospect's website URL) and flows
+  // through as a Vercel Blob URL.
+  logoUrl?: string;
   // Fake account shown in the top-right user menu. V0 can provide a
   // believable name + email per demo — demos have no real auth.
   fakeUserName?: string;
   fakeUserEmail?: string;
   // Optional per-demo starter questions passed into the shell chat
-  // panel. V0 sources these from the discovery enrichment
-  // (pain_points / workflows / metrics). Generic fallback inside the
-  // panel when not provided.
+  // panel. V0 sources these from the AI Opportunities list (the
+  // discovery enrichment's primary content field). Generic fallback
+  // inside the panel when not provided.
   chatStarterQuestions?: string[];
 }
 
@@ -26,6 +31,7 @@ interface AppShellProps {
 export function AppShell({
   children,
   brandName,
+  logoUrl,
   fakeUserName,
   fakeUserEmail,
   chatStarterQuestions,
@@ -48,6 +54,7 @@ export function AppShell({
         onChatToggle={() => setChatOpen((v) => !v)}
         isChatOpen={chatOpen}
         brandName={brandName}
+        logoUrl={logoUrl}
         fakeUserName={fakeUserName}
         fakeUserEmail={fakeUserEmail}
       />

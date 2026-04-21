@@ -11,7 +11,7 @@ Canonical Rosedale OS template repo. Every Demo Creator run in `rosedale-os` ini
 | `app/globals.css` | Full Rosedale OS token set (Manrope, radii, surface colors, chart palette). | **Preserve.** Tenant theming flows through CSS var overrides, not edits here. |
 | `app/layout.tsx` | Root layout with Manrope font + TooltipProvider. | **Preserve.** |
 | `app/page.tsx` | Trivial placeholder so `npm run build` passes. | **Replace** per demo with a client-specific KPI dashboard, following `templates/app/page.tsx`. |
-| `app/components/layout/*` | AppShell, TopBar, Sidebar, NavItem, nav-config, UserMenu. The 220px-sidebar shell with a right-rail sliding chat panel and a fake user avatar in the top-right. | **Preserve.** Pass `brandName`, optional `fakeUserName` / `fakeUserEmail` (for the avatar dropdown), and optional `chatStarterQuestions` (sourced from discovery enrichment) to `AppShell`. |
+| `app/components/layout/*` | AppShell, TopBar, Sidebar, NavItem, nav-config, UserMenu. The 220px-sidebar shell with a right-rail sliding chat panel and a fake user avatar in the top-right. | **Preserve.** Pass `brandName`, optional `logoUrl` (favicon resolved from the prospect's website URL — the shell renders it to the left of the wordmark automatically, so do not render the logo anywhere else), optional `fakeUserName` / `fakeUserEmail` (for the avatar dropdown), and optional `chatStarterQuestions` (sourced from AI Opportunities) to `AppShell`. |
 | `app/components/chat/ShellChatPanel.tsx` | Inert chat panel rendered in the shell's right rail when the TopBar chat button is toggled. Brand-aware; accepts optional starter-question list. | **Preserve.** Per-demo customization happens via `AppShell` props — do not modify this file. |
 | `components/ui/*` | shadcn primitives (button, tooltip, separator). | **Preserve and import.** Add more primitives via the shadcn CLI as needed — do not reimplement. |
 | `lib/utils.ts` | `cn()` helper combining `clsx` + `tailwind-merge`. | **Preserve.** |
@@ -35,7 +35,7 @@ Canonical Rosedale OS template repo. Every Demo Creator run in `rosedale-os` ini
 
 ## Shell anatomy (for V0 reference)
 
-- **TopBar**: 48px tall, `bg-[#1a1a1a]`, wordmark left, blank right (no user menu — demos are public).
+- **TopBar**: 48px tall, `bg-[#1a1a1a]`, wordmark left (optional 16px favicon renders immediately before the brand name when `logoUrl` is passed to `AppShell`), user avatar dropdown on the right (demos are public; the user menu is inert aesthetic).
 - **Sidebar**: 220px fixed width on desktop, `bg-surface-sidebar`, `pt-4`. Collapses to a drawer on mobile (<768px).
 - **Main**: `bg-surface-main`, `rounded-xl` on the sidebar-adjacent corners, `max-w-[96rem]` inner container, `px-8 pt-5 pb-6`.
 - **Outer frame**: `bg-[#1a1a1a]` around the rounded main panel — gives the editorial "panel-in-a-frame" feel.

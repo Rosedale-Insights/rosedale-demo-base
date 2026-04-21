@@ -7,6 +7,10 @@
 //   - Three KPI tiles in a responsive grid (1 / 2 / 3 cols)
 //   - One Recharts bar chart card with muted Rosedale palette (chart-1..5)
 //   - Tight vertical rhythm — gap-4 between rows, pt-2 top padding
+//   - `<AppShell logoUrl={...} brandName={...}>` — V0 passes the
+//     prospect's favicon URL (resolved on the Rosedale side) and their
+//     company name. The shell renders the favicon to the left of the
+//     wordmark automatically. Do not render the logo anywhere else.
 
 "use client";
 
@@ -56,7 +60,10 @@ const weeklyData = [
 
 export default function TemplateHomePage() {
   return (
-    <AppShell>
+    <AppShell
+      brandName="Acme"
+      logoUrl="https://example.com/favicon.png"
+    >
       <div className="pt-2">
         <h1 className="text-2xl">Home</h1>
         <p className="text-sm text-muted-foreground mt-1">

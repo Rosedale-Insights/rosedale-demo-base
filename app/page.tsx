@@ -4,6 +4,10 @@ import { AppShell } from "./components/layout/AppShell";
 // replace this file per demo with a client-specific home page (KPIs +
 // recent activity) styled after `templates/app/page.tsx`. The shell stays
 // intact, including the sliding chat rail and fake user avatar.
+//
+// `logoUrl` is the prospect's favicon (resolved from their website URL on
+// the Rosedale side). Per-demo generation passes the real URL; this
+// placeholder leaves it undefined so the wordmark renders alone.
 export default function HomePage() {
   return (
     <AppShell brandName="Rosedale">
