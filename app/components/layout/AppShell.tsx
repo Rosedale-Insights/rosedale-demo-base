@@ -57,13 +57,18 @@ export function AppShell({
 
   // When the chat rail is open on desktop, the main content compresses
   // to make room. Track widths with a grid template string so we can
-  // swap them in one CSS declaration. Chat intentionally has no column
-  // in `mobileColumns` — below the sidebar breakpoint it's suppressed
-  // by the useEffect above.
+  // swap them in one CSS declaration.
+  //
+  // `mobileColumns` MUST still include the chat track (even at 0 px)
+  // because the chat container stays mounted in the DOM — dropping it
+  // from the grid means the chat div wraps to a second grid row and
+  // eats vertical space below main. useEffect above holds chatCol at
+  // "0px" below 1024 px, so this expands to `minmax(0,1fr) 0px` on
+  // mobile — chat sits in col 2 at zero width, same row as main.
   const sidebarBreakpoint = chatOpen ? 1024 : 768;
   const mainCol = "minmax(0, 1fr)";
   const chatCol = chatOpen ? "440px" : "0px";
-  const mobileColumns = mainCol;
+  const mobileColumns = `${mainCol} ${chatCol}`;
   const desktopColumns = `220px ${mainCol} ${chatCol}`;
 
   return (
