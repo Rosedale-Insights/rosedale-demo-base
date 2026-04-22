@@ -190,7 +190,7 @@ function ChatSidePanel() {
 
       {/* Input */}
       <div className="border-t border-border px-3 py-3 shrink-0">
-        <div className="flex items-end gap-2 rounded-2xl border border-border bg-white px-3 py-2 focus-within:border-[#1a1a1a]/30 transition-colors">
+        <div className="flex items-center gap-2 rounded-2xl border border-border bg-white px-3 py-2 focus-within:border-[#1a1a1a]/30 transition-colors">
           <textarea
             rows={1}
             placeholder={`Ask ${BRAND} anything…`}

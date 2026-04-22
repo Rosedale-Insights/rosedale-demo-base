@@ -87,7 +87,7 @@ export function ShellChatPanel({ brandName, starterQuestions }: ShellChatPanelPr
 
       {/* Input */}
       <div className="border-t border-border px-3 py-3 shrink-0">
-        <div className="flex items-end gap-2 rounded-2xl border border-border bg-white px-3 py-2">
+        <div className="flex items-center gap-2 rounded-2xl border border-border bg-white px-3 py-2">
           <textarea
             rows={1}
             placeholder={`Ask ${brand} anything…`}
