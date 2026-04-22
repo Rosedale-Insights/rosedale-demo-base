@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { ShellChatPanel } from "../../components/chat/ShellChatPanel";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
@@ -39,36 +39,28 @@ export function AppShell({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
 
-  // Force-close the chat rail below 1024 px. Sidebar (220) + chat (440)
-  // already eats 660 px of any viewport that has both open, leaving
-  // unreadable main-content widths on phones and tablets. The toggle in
-  // TopBar still works at lg+; below that the panel is suppressed so
-  // generated demos stay legible on mobile.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mq = window.matchMedia("(max-width: 1023px)");
-    const handler = () => {
-      if (mq.matches) setChatOpen(false);
-    };
-    handler();
-    mq.addEventListener("change", handler);
-    return () => mq.removeEventListener("change", handler);
-  }, []);
-
-  // When the chat rail is open on desktop, the main content compresses
-  // to make room. Track widths with a grid template string so we can
-  // swap them in one CSS declaration.
+  // Grid track strategy.
   //
-  // `mobileColumns` MUST still include the chat track (even at 0 px)
-  // because the chat container stays mounted in the DOM — dropping it
-  // from the grid means the chat div wraps to a second grid row and
-  // eats vertical space below main. useEffect above holds chatCol at
-  // "0px" below 1024 px, so this expands to `minmax(0,1fr) 0px` on
-  // mobile — chat sits in col 2 at zero width, same row as main.
+  // Both `<main>` and the chat container stay mounted in the DOM so
+  // React state (scroll position, chat draft input) survives toggling.
+  // Visibility is controlled purely by grid track widths. The two items
+  // sit in DOM order: col 1 = main, col 2 = chat.
+  //
+  //   Mobile (< sidebarBreakpoint):
+  //     chat closed  → `1fr 0px`  — main full, chat hidden
+  //     chat open    → `0px 1fr`  — chat takes over full viewport,
+  //                                 main collapses. Closes via TopBar
+  //                                 toggle. Sidebar stays drawer-only
+  //                                 because sidebarBreakpoint bumps to
+  //                                 1024 whenever chat is open.
+  //
+  //   Desktop (≥ sidebarBreakpoint):
+  //     always sidebar (220) + main (1fr) + chat (440px or 0px).
+  //     Main compresses to make room; both coexist at lg+.
   const sidebarBreakpoint = chatOpen ? 1024 : 768;
   const mainCol = "minmax(0, 1fr)";
   const chatCol = chatOpen ? "440px" : "0px";
-  const mobileColumns = `${mainCol} ${chatCol}`;
+  const mobileColumns = chatOpen ? `0px ${mainCol}` : `${mainCol} 0px`;
   const desktopColumns = `220px ${mainCol} ${chatCol}`;
 
   return (
@@ -133,12 +125,16 @@ export function AppShell({
 
         {/* Right-rail chat. Always in the DOM so React state (scroll,
             draft input) survives toggling; visibility is controlled by
-            the grid track width above plus an opacity fade. */}
+            the grid track width above plus an opacity fade.
+            Mobile (< lg): chat takes over full viewport width when open,
+            mirrors main's rounded-top-both-corners look, no left seam.
+            Desktop (lg+): sits as 440px rail right of main with a 6px
+            seam (ml-1.5) and only top-left corner rounded to meet main's
+            right edge. */}
         <div
-          className={`flex min-w-0 flex-col overflow-hidden bg-white transition-opacity duration-200 ease-in-out ml-1.5 ${
+          className={`flex min-w-0 flex-col overflow-hidden bg-white transition-opacity duration-200 ease-in-out ml-0 lg:ml-1.5 rounded-t-xl lg:rounded-tr-none ${
             chatOpen ? "opacity-100" : "opacity-0 pointer-events-none"
           }`}
-          style={{ borderRadius: "12px 0 0 0" }}
           aria-hidden={!chatOpen}
           inert={!chatOpen || undefined}
         >
