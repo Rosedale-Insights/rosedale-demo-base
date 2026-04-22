@@ -190,6 +190,12 @@ export default function TemplateDeliveryPage() {
             {atRiskOrders.filter((o) => o.risk !== "On track").length} active POs requiring attention
           </div>
         </div>
+        {/* Horizontal-scroll wrapper: multi-column grid tables need min-w
+            below the md breakpoint, otherwise fr-columns squeeze to
+            unreadable widths on phones. Inner container's min-w equals
+            the sum of fixed cols + reasonable minimums for fr cols. */}
+        <div className="overflow-x-auto">
+          <div className="min-w-[720px]">
         <div className="grid grid-cols-[88px_1.2fr_1.6fr_80px_80px_1fr_60px] items-center gap-4 px-5 py-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground bg-muted/40">
           <span>PO #</span>
           <span>Supplier</span>
@@ -210,6 +216,8 @@ export default function TemplateDeliveryPage() {
             <span className="text-xs text-right tabular-nums text-muted-foreground">{o.confidence}%</span>
           </div>
         ))}
+          </div>
+        </div>
       </div>
     </AppShell>
   );

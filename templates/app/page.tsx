@@ -4,7 +4,10 @@
 //
 // Composition rules demonstrated here:
 //   - Page-level h1 at text-2xl (700 weight via globals.css heading rule)
-//   - Three KPI tiles in a responsive grid (1 / 2 / 3 cols)
+//   - Three KPI tiles in a 3-tier responsive grid: 1 col on phones
+//     (< 640), 2 cols on small screens (640-1023), 3 cols at lg+. NEVER
+//     skip the sm: tier — a 1→3 jump leaves a dead band between 640 and
+//     1023 where tiles look visually orphaned.
 //   - One Recharts bar chart card with muted Rosedale palette (chart-1..5)
 //   - Tight vertical rhythm — gap-4 between rows, pt-2 top padding
 //   - `<AppShell logoUrl={...} brandName={...}>` — V0 passes the
@@ -71,7 +74,7 @@ export default function TemplateHomePage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
         <KpiTile label="Issues completed" value="28" delta="+12% WoW" />
         <KpiTile label="In progress" value="13" delta="3 stalled" />
         <KpiTile label="Active members" value="8" />

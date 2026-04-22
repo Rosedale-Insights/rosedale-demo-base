@@ -153,6 +153,12 @@ export default function TemplateShopFloorPage() {
             </div>
           </div>
 
+          {/* Horizontal-scroll wrapper: 8-col machine table needs ~720px
+              min width to stay readable; inside a lg:col-span-2 grid
+              track, the table gets ~2/3 of the row but still shrinks
+              below the md breakpoint. */}
+          <div className="overflow-x-auto">
+            <div className="min-w-[720px]">
           <div className="grid grid-cols-[16px_84px_1fr_80px_80px_60px_64px_56px] items-center gap-3 px-5 py-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground bg-muted/40">
             <span />
             <span>ID</span>
@@ -179,6 +185,8 @@ export default function TemplateShopFloorPage() {
               <span className={`text-xs text-right tabular-nums font-medium ${m.health >= 80 ? "text-emerald-700" : m.health >= 60 ? "text-amber-700" : "text-rose-700"}`}>{m.health}</span>
             </div>
           ))}
+            </div>
+          </div>
         </div>
 
         <div className="bg-card border border-border rounded-xl p-5">

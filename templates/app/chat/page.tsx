@@ -10,10 +10,15 @@
 // reviewing KPIs (Home, Shipments, Suppliers, etc.).
 //
 // Composition rules demonstrated:
-//   - Parent grid: grid-cols-[minmax(0,1fr)_400px] on desktop,
-//     single column on mobile. The rail collapses below content.
-//   - Rail surface: bg-card + border + rounded-xl. Sticky top so it
-//     stays visible as main content scrolls (sticky top-2, h-[calc(...)]).
+//   - Parent grid: `grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px]`.
+//     Single column below lg (< 1024 px) so the rail stacks below main.
+//     Side-by-side at lg+. NEVER use an inline `style={{
+//     gridTemplateColumns: ... }}` — Tailwind variants cannot override it
+//     and mobile collapses silently.
+//   - Rail surface: bg-card + border + rounded-xl. Sticky top only at
+//     lg+ (`lg:sticky lg:top-2`) so it doesn't stick while stacked below
+//     main on narrow viewports. Height is a short fixed value on mobile
+//     (`h-[480px]`) and a full-viewport calc at lg+.
 //   - Panel header: small icon + "ASK <BRAND>" label, border-bottom.
 //   - Scroll body: flex-1 overflow-y-auto px-4 py-4 space-y-4.
 //   - Starter state: brand avatar + "Ask about X" + 3–4 suggestion
@@ -158,8 +163,7 @@ function AssistantTurn({
 function ChatSidePanel() {
   return (
     <aside
-      className="sticky top-2 flex flex-col bg-card border border-border rounded-xl overflow-hidden"
-      style={{ height: "calc(100vh - 120px)", minHeight: "520px" }}
+      className="flex flex-col bg-card border border-border rounded-xl overflow-hidden h-[480px] lg:sticky lg:top-2 lg:h-[calc(100vh-120px)] lg:min-h-[520px]"
     >
       {/* Header */}
       <div className="flex items-center gap-2 px-4 h-10 border-b border-border shrink-0">
@@ -241,16 +245,15 @@ function StarterState() {
 
 // This is the LAYOUT V0 should mirror when the AI-showcase zone is a
 // knowledge-base chat. Main content fills the left; ChatSidePanel
-// anchors the right rail. Below 900px the rail collapses below
-// (natural single-column flow).
+// anchors the right rail at lg+ (>= 1024 px). Below lg the rail stacks
+// below main content as a second row — natural single-column flow with
+// a 480px chat height so the rail still looks like a chat, not a
+// squished hint.
 
 export default function ChatPageTemplate() {
   return (
     <AppShell brandName={BRAND}>
-      <div
-        className="grid gap-4 pt-2"
-        style={{ gridTemplateColumns: "minmax(0, 1fr) 400px" }}
-      >
+      <div className="grid gap-4 pt-2 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px]">
         {/* LEFT — main content (per-demo, this is the actual page body:
             KPI row, charts, tables, etc.) */}
         <div className="min-w-0 flex flex-col gap-4">
@@ -261,7 +264,7 @@ export default function ChatPageTemplate() {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {["On-time delivery", "Suppliers at risk", "Throughput"].map((label) => (
               <div
                 key={label}
