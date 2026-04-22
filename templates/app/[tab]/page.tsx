@@ -40,14 +40,14 @@ function Row({ title, subtitle, status }: RowProps) {
 export default function TemplateTabPage() {
   return (
     <AppShell>
-      <div className="pt-2 flex items-start justify-between gap-4">
-        <div>
+      <div className="pt-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
           <h1 className="text-2xl">Tab title</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Short, industry-specific description of what this tab shows.
           </p>
         </div>
-        <Button size="sm">New item</Button>
+        <Button size="sm" className="self-start sm:self-auto shrink-0">New item</Button>
       </div>
 
       <div className="bg-card border border-border rounded-xl p-5 mt-6">

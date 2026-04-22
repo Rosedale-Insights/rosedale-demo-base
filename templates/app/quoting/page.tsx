@@ -152,6 +152,11 @@ export default function TemplateQuotingPage() {
       </div>
 
       <div className="bg-card border border-border rounded-xl mt-3">
+        {/* Horizontal-scroll wrapper: 6-col quote table needs ~880px min
+            width to stay readable; below the md breakpoint the inner
+            grid would squeeze to unreadable widths. */}
+        <div className="overflow-x-auto">
+          <div className="min-w-[880px]">
         <div className="grid grid-cols-[1.6fr_2fr_1fr_1.2fr_80px_88px] items-center gap-4 px-5 py-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground bg-muted/40">
           <span>Client &amp; ID</span>
           <span>Project</span>
@@ -188,6 +193,8 @@ export default function TemplateQuotingPage() {
             </span>
           </div>
         ))}
+          </div>
+        </div>
       </div>
 
       <div className="bg-card border border-border rounded-xl p-5 mt-4">

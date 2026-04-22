@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ShellChatPanel } from "../../components/chat/ShellChatPanel";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
@@ -39,12 +39,31 @@ export function AppShell({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
 
+  // Force-close the chat rail below 1024 px. Sidebar (220) + chat (440)
+  // already eats 660 px of any viewport that has both open, leaving
+  // unreadable main-content widths on phones and tablets. The toggle in
+  // TopBar still works at lg+; below that the panel is suppressed so
+  // generated demos stay legible on mobile.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 1023px)");
+    const handler = () => {
+      if (mq.matches) setChatOpen(false);
+    };
+    handler();
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
   // When the chat rail is open on desktop, the main content compresses
   // to make room. Track widths with a grid template string so we can
-  // swap them in one CSS declaration.
+  // swap them in one CSS declaration. Chat intentionally has no column
+  // in `mobileColumns` — below the sidebar breakpoint it's suppressed
+  // by the useEffect above.
+  const sidebarBreakpoint = chatOpen ? 1024 : 768;
   const mainCol = "minmax(0, 1fr)";
   const chatCol = chatOpen ? "440px" : "0px";
-  const mobileColumns = `${mainCol} ${chatCol}`;
+  const mobileColumns = mainCol;
   const desktopColumns = `220px ${mainCol} ${chatCol}`;
 
   return (
@@ -64,7 +83,7 @@ export function AppShell({
         style={{ gridTemplateColumns: mobileColumns }}
       >
         <style>{`
-          @media (min-width: 768px) {
+          @media (min-width: ${sidebarBreakpoint}px) {
             .app-shell-grid {
               grid-template-columns: ${desktopColumns} !important;
             }
@@ -102,7 +121,7 @@ export function AppShell({
           id="main-content"
           className="overflow-auto overscroll-none bg-surface-main min-w-0 rounded-xl app-shell-main"
         >
-          <div className="max-w-[96rem] mx-auto w-full px-8 pt-5 pb-6 min-h-full">
+          <div className="max-w-[96rem] mx-auto w-full px-4 sm:px-6 lg:px-8 pt-5 pb-6 min-h-full">
             {children}
           </div>
         </main>
