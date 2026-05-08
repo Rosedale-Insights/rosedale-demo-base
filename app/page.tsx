@@ -25,7 +25,7 @@ export default function HomePage() {
               className="group rounded-xl border border-border bg-card p-5 transition-colors hover:bg-surface-hover"
             >
               <div className="flex items-center gap-2.5 mb-3">
-                <tool.icon className="size-5 text-primary" weight="duotone" />
+                <tool.icon className="size-5 text-primary" weight="light" />
                 <h2 className="font-semibold text-sm">{tool.title}</h2>
               </div>
               <p className="text-xs text-muted-foreground mb-4 leading-relaxed">

@@ -68,7 +68,7 @@ const STATUS_ORDER: Record<PmStatus, number> = {
 
 const PRIORITY_CLASS: Record<PmPriority, string> = {
   Critical: "text-destructive font-semibold",
-  High: "text-primary font-semibold",
+  High: "text-amber-700 font-semibold",
   Medium: "text-foreground",
   Low: "text-muted-foreground",
 }

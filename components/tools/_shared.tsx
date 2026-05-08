@@ -28,8 +28,10 @@ export function KpiCard({ label, value, delta, sub }: KpiCardProps) {
         <div className="text-2xl tabular-nums">{value}</div>
         {delta && (
           <span
-            className="text-[11px] font-medium inline-flex items-center gap-0.5"
-            style={{ color: delta.direction === "up" ? "#6b8f71" : "#b05a5a" }}
+            className={cn(
+              "text-[11px] font-medium inline-flex items-center gap-0.5",
+              delta.direction === "up" ? "text-emerald-600" : "text-rose-600"
+            )}
           >
             <svg width="8" height="6" viewBox="0 0 8 6" fill="currentColor" aria-hidden>
               {delta.direction === "up" ? (

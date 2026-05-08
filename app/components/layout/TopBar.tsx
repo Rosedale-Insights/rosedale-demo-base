@@ -33,7 +33,7 @@ export function TopBar({
   fakeUserEmail = "alex@rosedale.ai",
 }: TopBarProps) {
   return (
-    <div className="flex items-center w-full h-12 shrink-0 px-4 bg-[#1a1a1a]">
+    <div className="flex items-center w-full h-12 shrink-0 px-4 bg-surface-frame">
       <div className="flex items-center gap-3 shrink-0">
         <button
           type="button"

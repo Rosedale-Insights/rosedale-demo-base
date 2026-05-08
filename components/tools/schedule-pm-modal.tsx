@@ -513,12 +513,6 @@ function ReviewBody({
 }) {
   return (
     <div className="flex flex-col gap-5">
-      <AiCallout
-        variant="default"
-        headline={`${form.machineId} · ${form.pmType} · ${fmtDate(form.windowStart)} – ${fmtDate(form.windowEnd)}`}
-        body={cost.narrative}
-      />
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div>
           <div className="text-sm font-semibold mb-2">Jobs affected</div>
@@ -562,6 +556,12 @@ function ReviewBody({
           </div>
         </div>
       </div>
+
+      <AiCallout
+        variant="default"
+        headline={`${form.machineId} · ${form.pmType} · ${fmtDate(form.windowStart)} – ${fmtDate(form.windowEnd)}`}
+        body={cost.narrative}
+      />
     </div>
   )
 }
@@ -630,8 +630,8 @@ function CostSummary({ cost }: { cost: CostBreakdown }) {
           {fmtUsd(cost.unplannedRiskPerHour)}/hr
         </span>
       </div>
-      <div className="grid grid-cols-2 px-3 py-2.5 text-sm bg-primary text-primary-foreground">
-        <span className="opacity-90">Total delay</span>
+      <div className="grid grid-cols-2 px-3 py-2.5 text-sm bg-muted text-foreground">
+        <span>Total delay</span>
         <span className="text-right tabular-nums font-semibold">
           {cost.totalDelayDays} day{cost.totalDelayDays === 1 ? "" : "s"}
         </span>

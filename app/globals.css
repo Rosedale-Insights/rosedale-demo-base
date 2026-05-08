@@ -48,6 +48,7 @@
   --color-surface-header: var(--surface-header);
   --color-surface-hover: var(--surface-hover);
   --color-surface-header-hover: var(--surface-header-hover);
+  --color-surface-frame: var(--surface-frame);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -92,6 +93,7 @@
   --surface-header: oklch(0.96 0.004 75);
   --surface-hover: oklch(0.97 0.004 75);
   --surface-header-hover: oklch(0.94 0.005 75);
+  --surface-frame: #1a1a1a;
 }
 
 @layer base {

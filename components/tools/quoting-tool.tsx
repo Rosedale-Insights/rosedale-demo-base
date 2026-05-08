@@ -4,7 +4,6 @@ import * as React from "react"
 import {
   Bar,
   BarChart,
-  Cell,
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
   XAxis,
@@ -100,7 +99,7 @@ type FilterTab = (typeof FILTER_TABS)[number]
 
 const STATUS_CHIP: Record<QuoteStatus, string> = {
   Draft: "bg-muted text-muted-foreground",
-  Review: "bg-sky-50 text-sky-700",
+  Review: "bg-secondary text-secondary-foreground",
   Sent: "bg-amber-50 text-amber-700",
   Won: "bg-emerald-50 text-emerald-700",
   Lost: "bg-rose-50 text-rose-700",
@@ -118,7 +117,7 @@ const marginIndicatorClass = (m: number) =>
 const fmtUsd = (n: number) =>
   `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
 
-const COST_BAR_FILLS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"]
+const COST_BAR_FILL = "var(--foreground)"
 
 const DEFAULT_COST_BREAKDOWN: CostBreakdownItem[] = [
   { name: "Material", value: 2220 }, { name: "Machine time", value: 4290 },
@@ -354,11 +353,7 @@ function CostChart({ data, height = 220, barSize = 14 }: { data: CostBreakdownIt
             contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
             formatter={(value) => [`$${Number(value).toLocaleString()}`, ""]}
           />
-          <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={barSize}>
-            {data.map((entry, i) => (
-              <Cell key={entry.name} fill={COST_BAR_FILLS[i % COST_BAR_FILLS.length]} />
-            ))}
-          </Bar>
+          <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={barSize} fill={COST_BAR_FILL} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -694,14 +689,14 @@ function QuoteReview({
           </div>
         </div>
 
-        <div className="bg-primary text-primary-foreground rounded-xl p-4 grid grid-cols-3 gap-3">
+        <div className="bg-card border border-border rounded-xl p-4 grid grid-cols-3 gap-3">
           {[
             { label: "Total", value: totalPrice },
             { label: "Per unit", value: unitPrice },
             { label: "Margin", value: marginDollars },
           ].map((tile) => (
             <div key={tile.label}>
-              <div className="text-[10px] uppercase tracking-wider opacity-75">{tile.label}</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{tile.label}</div>
               <div className="text-xl tabular-nums font-semibold mt-0.5">{fmtUsd(tile.value)}</div>
             </div>
           ))}

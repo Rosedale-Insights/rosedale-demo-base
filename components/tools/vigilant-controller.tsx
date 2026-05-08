@@ -229,9 +229,7 @@ function FindingDetail({
 }) {
   return (
     <div className="mx-4 mb-3 p-4 bg-muted/40 rounded-md border-l-2 border-primary">
-      <AiCallout variant="subtle" body={finding.aiSummary} />
-
-      <div className="grid grid-cols-2 gap-x-6 gap-y-2 mt-4">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-2">
         {finding.evidence.map((e) => (
           <div key={e.label}>
             <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
@@ -240,6 +238,10 @@ function FindingDetail({
             <div className="text-sm">{e.value}</div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-4">
+        <AiCallout variant="subtle" body={finding.aiSummary} />
       </div>
 
       <div className="flex items-center gap-2 mt-4">
