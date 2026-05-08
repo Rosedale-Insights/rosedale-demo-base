@@ -25,7 +25,7 @@ interface AppShellProps {
 }
 
 // Canonical Rosedale OS shell. 220px fixed sidebar, rounded-top main
-// panel, bg-[#1a1a1a] outer frame. Right rail slides out when the chat
+// panel, bg-surface-frame outer frame. Right rail slides out when the chat
 // toggle in TopBar fires. Per-tenant theming flows through
 // --surface-sidebar / --primary CSS vars in globals.css.
 export function AppShell({
@@ -64,7 +64,7 @@ export function AppShell({
   const desktopColumns = `220px ${mainCol} ${chatCol}`;
 
   return (
-    <div className="h-screen overflow-hidden overscroll-none flex flex-col bg-[#1a1a1a]">
+    <div className="h-screen overflow-hidden overscroll-none flex flex-col bg-surface-frame">
       <TopBar
         onMenuToggle={() => setMobileMenuOpen((v) => !v)}
         onChatToggle={() => setChatOpen((v) => !v)}

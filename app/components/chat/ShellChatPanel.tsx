@@ -76,7 +76,7 @@ export function ShellChatPanel({ brandName, starterQuestions }: ShellChatPanelPr
               <button
                 key={q}
                 type="button"
-                className="rounded-2xl border border-border bg-white px-3 py-2 text-left text-[12px] leading-snug text-[#1a1a1a]/80 transition-all hover:border-[#1a1a1a]/20 hover:bg-[#f5f5f5] hover:text-[#1a1a1a]"
+                className="rounded-2xl border border-border bg-white px-3 py-2 text-left text-[12px] leading-snug text-foreground/80 transition-all hover:border-foreground/20 hover:bg-surface-hover hover:text-foreground"
               >
                 {q}
               </button>

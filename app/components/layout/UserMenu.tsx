@@ -57,8 +57,8 @@ export function UserMenu({ name, email }: UserMenuProps) {
           className="absolute right-0 top-[calc(100%+6px)] min-w-[220px] rounded-lg border border-border bg-white shadow-lg z-50 py-1 text-[13px] text-foreground"
         >
           <div className="px-3 py-2">
-            <p className="text-sm font-medium text-gray-900 truncate">{name}</p>
-            <p className="text-xs text-gray-500 truncate">{email}</p>
+            <p className="text-sm font-medium text-foreground truncate">{name}</p>
+            <p className="text-xs text-muted-foreground truncate">{email}</p>
           </div>
           <div className="h-px bg-border mx-1" />
           <button

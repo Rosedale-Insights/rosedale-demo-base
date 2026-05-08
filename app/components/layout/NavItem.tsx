@@ -38,8 +38,8 @@ export function NavItem({
     "flex items-center gap-2 w-full rounded-lg text-left truncate transition-colors",
     sub ? "px-2 py-1 pl-7 text-[13px]" : "px-2 py-1.5 text-[13px]",
     active
-      ? "bg-white text-[#1a1a1a] font-semibold shadow-[0_1px_0_0_rgba(0,0,0,0.05)]"
-      : "font-medium text-[#303030] hover:bg-black/5 hover:text-[#1a1a1a]",
+      ? "bg-white text-foreground font-semibold shadow-[0_1px_0_0_rgba(0,0,0,0.05)]"
+      : "font-medium text-foreground/80 hover:bg-black/5 hover:text-foreground",
   );
 
   const inner = (

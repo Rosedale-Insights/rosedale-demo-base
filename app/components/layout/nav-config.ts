@@ -1,4 +1,4 @@
-import { House, ChartBar, Users, Folder, GearSix, type Icon } from "@phosphor-icons/react";
+import { House, Receipt, Wrench, ShieldCheck, GearSix, type Icon } from "@phosphor-icons/react";
 
 export interface NavLeaf {
   href: string;
@@ -21,13 +21,11 @@ export function isNavGroup(node: NavNode): node is NavGroup {
 }
 
 // V0 replaces this array per demo with the client's actual tabs.
-// Generic entries shown here are illustrative — they exist so the shell
-// renders a populated sidebar when the base is opened in isolation.
 export const primaryNav: NavNode[] = [
   { href: "/", label: "Home", icon: House },
-  { href: "/analytics", label: "Analytics", icon: ChartBar },
-  { href: "/users", label: "Users", icon: Users },
-  { href: "/projects", label: "Projects", icon: Folder },
+  { href: "/quoting", label: "Quoting", icon: Receipt },
+  { href: "/maintenance", label: "Maintenance", icon: Wrench },
+  { href: "/vigilant", label: "Vigilant", icon: ShieldCheck },
 ];
 
 export const footerNav: NavLeaf[] = [
