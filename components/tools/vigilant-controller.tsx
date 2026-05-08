@@ -10,12 +10,12 @@ import {
   HelpTooltip,
   KpiCard,
   KpiRow,
-  type KpiCardProps,
+  fmtUsd,
+  fmtDate,
+  type KpiSpec,
 } from "./_shared"
 
 /* ---------- Types -------------------------------------------------------- */
-
-export interface KpiSpec extends KpiCardProps {}
 
 export type FindingSeverity = "Critical" | "High" | "Medium" | "Low"
 export type FindingStatus = "New" | "Under Review" | "Confirmed" | "Dismissed" | "Resolved"
@@ -41,7 +41,7 @@ export interface SavingsSummary {
 export interface VigilantControllerProps {
   title: string
   subtitle: string
-  kpis: [KpiSpec, KpiSpec, KpiSpec, KpiSpec]
+  kpis: KpiSpec[]
   findings: Finding[]
   savings: SavingsSummary
 }
@@ -66,18 +66,6 @@ const STATUS_VARIANT: Record<
   Resolved: "muted",
 }
 
-/* ---------- Helpers ------------------------------------------------------ */
-
-const fmtUsd = (n: number) =>
-  `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-
-const fmtDate = (iso: string) => {
-  if (!iso) return "—"
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" })
-}
-
 /* ---------- Tool --------------------------------------------------------- */
 
 export default function VigilantController(props: VigilantControllerProps) {
@@ -88,14 +76,18 @@ export default function VigilantController(props: VigilantControllerProps) {
     Record<string, FindingStatus>
   >({})
 
-  function effectiveStatus(f: Finding): FindingStatus {
-    return statusOverrides[f.id] ?? f.status
-  }
+  const effectiveStatus = React.useCallback(
+    (f: Finding): FindingStatus => statusOverrides[f.id] ?? f.status,
+    [statusOverrides]
+  )
 
-  function applyAction(id: string, next: FindingStatus) {
-    setStatusOverrides((prev) => ({ ...prev, [id]: next }))
-    setExpandedId(null)
-  }
+  const applyAction = React.useCallback(
+    (id: string, next: FindingStatus) => {
+      setStatusOverrides((prev) => ({ ...prev, [id]: next }))
+      setExpandedId(null)
+    },
+    []
+  )
 
   return (
     <div className="flex flex-col gap-6 pt-2">
@@ -179,6 +171,7 @@ function AnomalyFeed({
                 type="button"
                 onClick={() => onToggle(f.id)}
                 aria-expanded={expanded}
+                aria-label={`${f.title} — ${f.severity}, ${expanded ? "collapse" : "expand"} details`}
                 className={cn(
                   "w-full text-left px-5 py-3 border-t border-border transition-opacity",
                   dimmed ? "opacity-40" : "hover:bg-muted/30"

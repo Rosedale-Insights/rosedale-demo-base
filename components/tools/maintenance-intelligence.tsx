@@ -11,7 +11,9 @@ import {
   HelpTooltip,
   KpiCard,
   KpiRow,
-  type KpiCardProps,
+  fmtDate,
+  fmtRange,
+  type KpiSpec,
 } from "./_shared"
 import SchedulePmModal, {
   type ScheduledPmEvent,
@@ -22,8 +24,6 @@ import SchedulePmModal, {
 export type PmPriority = "Critical" | "High" | "Medium" | "Low"
 export type PmStatus = "Overdue" | "In Progress" | "Scheduled" | "Completed"
 export type VibrationStatus = "Normal" | "Attention" | "Alarm"
-
-export interface KpiSpec extends KpiCardProps {}
 
 export interface MachineCard {
   id: string
@@ -52,7 +52,7 @@ export interface PmRow {
 export interface MaintenanceIntelligenceProps {
   title: string
   subtitle: string
-  kpis: [KpiSpec, KpiSpec, KpiSpec, KpiSpec]
+  kpis: KpiSpec[]
   machines: MachineCard[]
   pmSchedule: PmRow[]
 }
@@ -90,16 +90,6 @@ const VIBRATION_CLASS: Record<VibrationStatus, string> = {
 }
 
 /* ---------- Helpers ------------------------------------------------------ */
-
-const fmtDate = (iso: string) => {
-  if (!iso) return "—"
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" })
-}
-
-const fmtRange = (start: string, end: string) =>
-  start === end ? fmtDate(start) : `${fmtDate(start)} – ${fmtDate(end)}`
 
 const byUrgency = (a: PmRow, b: PmRow) =>
   STATUS_ORDER[a.status] - STATUS_ORDER[b.status]
@@ -212,20 +202,21 @@ function PmScheduleTable({ rows }: { rows: PmRow[] }) {
         </HelpTooltip>
       </div>
       <div className="overflow-x-auto">
-        <div className="min-w-[920px]">
+        <div role="table" className="min-w-[920px]">
           <div
+            role="row"
             className={cn(
               "grid items-center gap-3 px-5 py-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground bg-muted/40 border-t border-border",
               cols
             )}
           >
-            <span>Machine</span>
-            <span>Description</span>
-            <span>Window</span>
-            <span className="text-right">Duration</span>
-            <span>Priority</span>
-            <span className="text-right">Conflicts</span>
-            <span>Status</span>
+            <span role="columnheader">Machine</span>
+            <span role="columnheader">Description</span>
+            <span role="columnheader">Window</span>
+            <span role="columnheader" className="text-right">Duration</span>
+            <span role="columnheader">Priority</span>
+            <span role="columnheader" className="text-right">Conflicts</span>
+            <span role="columnheader">Status</span>
           </div>
           {rows.length === 0 && (
             <div className="px-5 py-10 text-sm text-muted-foreground text-center border-t border-border">
@@ -234,26 +225,28 @@ function PmScheduleTable({ rows }: { rows: PmRow[] }) {
           )}
           {rows.map((r, i) => (
             <div
+              role="row"
               key={`${r.machineId}-${r.windowStart}-${i}`}
               className={cn(
                 "grid items-center gap-3 px-5 py-3 border-t border-border text-sm",
                 cols
               )}
             >
-              <span className="font-medium tabular-nums">{r.machineId}</span>
-              <span className="text-muted-foreground truncate">
+              <span role="cell" className="font-medium tabular-nums">{r.machineId}</span>
+              <span role="cell" className="text-muted-foreground truncate">
                 {r.description}
               </span>
-              <span className="text-xs tabular-nums">
+              <span role="cell" className="text-xs tabular-nums">
                 {fmtRange(r.windowStart, r.windowEnd)}
               </span>
-              <span className="text-right tabular-nums text-xs">
+              <span role="cell" className="text-right tabular-nums text-xs">
                 {r.durationHrs}h
               </span>
-              <span className={cn("text-xs", PRIORITY_CLASS[r.priority])}>
+              <span role="cell" className={cn("text-xs", PRIORITY_CLASS[r.priority])}>
                 {r.priority}
               </span>
               <span
+                role="cell"
                 className={cn(
                   "text-right tabular-nums text-xs",
                   r.conflictsCount > 0
@@ -263,7 +256,7 @@ function PmScheduleTable({ rows }: { rows: PmRow[] }) {
               >
                 {r.conflictsCount > 0 ? r.conflictsCount : "None"}
               </span>
-              <span>
+              <span role="cell">
                 <Badge variant={STATUS_VARIANT[r.status]}>{r.status}</Badge>
               </span>
             </div>

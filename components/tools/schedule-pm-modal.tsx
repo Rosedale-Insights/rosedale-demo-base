@@ -26,6 +26,12 @@ import {
 import {
   AiCallout,
   AiProcessingSteps,
+  fmtUsd,
+  fmtDate,
+  todayIso,
+  addDaysIso,
+  daysBetween,
+  useProcessingAnimation,
   type ProcessingStep,
 } from "./_shared"
 
@@ -64,20 +70,20 @@ const PM_TYPES: PmType[] = ["Preventive", "Predictive", "Inspection"]
 const DURATIONS: PmDuration[] = ["4 hrs", "8 hrs", "1 day", "2 days"]
 const PROVIDERS: PmServiceProvider[] = ["In-House", "OEM", "Third-Party"]
 
-const PROCESSING_LABELS = [
+const PROCESSING_LABELS: string[] = [
   "Checking production schedule",
   "Identifying job conflicts",
   "Evaluating rerouting options",
   "Calculating cost impact",
-] as const
+]
 
-const PM_CHECKLIST = [
+const PM_CHECKLIST: string[] = [
   "Spindle bearing inspection",
   "Lubrication check",
   "Axis alignment verification",
   "Runout calibration",
   "Coolant flush",
-] as const
+]
 
 const CUSTOMER_POOL = [
   "Aerospace Dynamics",
@@ -89,31 +95,6 @@ const CUSTOMER_POOL = [
 ]
 
 const REROUTE_POOL = ["CNC-01", "CNC-02", "5AX-01", "LAT-01", "HAAS-03"]
-
-const fmtUsd = (n: number) =>
-  `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-
-const todayIso = () => new Date().toISOString().slice(0, 10)
-const addDaysIso = (iso: string, days: number) => {
-  const d = new Date(iso)
-  d.setDate(d.getDate() + days)
-  return d.toISOString().slice(0, 10)
-}
-
-const daysBetween = (start: string, end: string) => {
-  if (!start || !end) return 1
-  const s = new Date(start).getTime()
-  const e = new Date(end).getTime()
-  if (Number.isNaN(s) || Number.isNaN(e) || e < s) return 1
-  return Math.max(1, Math.round((e - s) / 86_400_000) + 1)
-}
-
-const fmtDate = (iso: string) => {
-  if (!iso) return "—"
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" })
-}
 
 /* ---------- Mock derivation --------------------------------------------- */
 
@@ -223,8 +204,8 @@ export default function SchedulePmModal({
   pmTypes = PM_TYPES,
   durations = DURATIONS,
   serviceProviders = PROVIDERS,
-  processingLabels = PROCESSING_LABELS as unknown as string[],
-  checklistItems = PM_CHECKLIST as unknown as string[],
+  processingLabels = PROCESSING_LABELS,
+  checklistItems = PM_CHECKLIST,
   customerPool = CUSTOMER_POOL,
   reroutePool = REROUTE_POOL,
 }: SchedulePmModalProps) {
@@ -232,41 +213,23 @@ export default function SchedulePmModal({
   const [form, setForm] = React.useState<FormState>(() =>
     defaultForm(machines, pmTypes, durations, serviceProviders)
   )
-  const [stepStatuses, setStepStatuses] = React.useState<
-    ProcessingStep["status"][]
-  >(() => processingLabels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"]))
   const [checklist, setChecklist] = React.useState<boolean[]>(
     () => checklistItems.map(() => false)
   )
+
+  const { steps: processingSteps, isDone: animationDone } =
+    useProcessingAnimation(processingLabels, step === 2, 1100)
+
+  React.useEffect(() => {
+    if (animationDone) setStep(3)
+  }, [animationDone])
 
   React.useEffect(() => {
     if (!open) return
     setStep(1)
     setForm(defaultForm(machines, pmTypes, durations, serviceProviders))
     setChecklist(checklistItems.map(() => false))
-    setStepStatuses(processingLabels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"]))
-  }, [open, machines, pmTypes, durations, serviceProviders, checklistItems, processingLabels])
-
-  React.useEffect(() => {
-    if (step !== 2) return
-    const count = processingLabels.length
-    setStepStatuses(processingLabels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"]))
-    const timers: ReturnType<typeof setTimeout>[] = []
-    for (let i = 0; i < count; i++) {
-      timers.push(
-        setTimeout(() => {
-          setStepStatuses((prev) => {
-            const next = [...prev] as ProcessingStep["status"][]
-            next[i] = "done"
-            if (i + 1 < count) next[i + 1] = "active"
-            return next
-          })
-        }, (i + 1) * 1100)
-      )
-    }
-    timers.push(setTimeout(() => setStep(3), count * 1100 + 600))
-    return () => timers.forEach(clearTimeout)
-  }, [step, processingLabels])
+  }, [open, machines, pmTypes, durations, serviceProviders, checklistItems])
 
   const days = daysBetween(form.windowStart, form.windowEnd)
   const affected = React.useMemo(
@@ -283,10 +246,6 @@ export default function SchedulePmModal({
         affected
       ),
     [form.machineId, form.pmType, form.duration, days, affected]
-  )
-
-  const processingSteps: ProcessingStep[] = processingLabels.map(
-    (label, i) => ({ label, status: stepStatuses[i] })
   )
 
   const setField = <K extends keyof FormState>(key: K, val: FormState[K]) =>
@@ -578,30 +537,33 @@ function AffectedJobsTable({ jobs }: { jobs: AffectedJob[] }) {
   }
   const cols = "grid-cols-[1fr_1.4fr_60px_80px]"
   return (
-    <div className="bg-card border border-border rounded-md overflow-hidden">
+    <div role="table" className="bg-card border border-border rounded-md overflow-hidden">
       <div
+        role="row"
         className={cn(
           "grid gap-2 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground bg-muted/40",
           cols
         )}
       >
-        <span>Job ID</span>
-        <span>Customer</span>
-        <span className="text-right">Delay</span>
-        <span className="text-right">Reroute</span>
+        <span role="columnheader">Job ID</span>
+        <span role="columnheader">Customer</span>
+        <span role="columnheader" className="text-right">Delay</span>
+        <span role="columnheader" className="text-right">Reroute</span>
       </div>
       {jobs.map((j) => (
         <div
+          role="row"
           key={j.jobId}
           className={cn(
             "grid gap-2 px-3 py-2 text-xs border-t border-border items-center",
             cols
           )}
         >
-          <span className="font-medium">{j.jobId}</span>
-          <span className="text-muted-foreground truncate">{j.customer}</span>
-          <span className="text-right tabular-nums">{j.delayDays}d</span>
+          <span role="cell" className="font-medium">{j.jobId}</span>
+          <span role="cell" className="text-muted-foreground truncate">{j.customer}</span>
+          <span role="cell" className="text-right tabular-nums">{j.delayDays}d</span>
           <span
+            role="cell"
             className={cn(
               "text-right text-[11px] font-medium",
               j.reroute ? "text-emerald-700" : "text-rose-700"

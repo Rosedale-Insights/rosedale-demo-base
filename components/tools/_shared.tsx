@@ -20,6 +20,8 @@ export interface KpiCardProps {
   sub?: string
 }
 
+export type KpiSpec = KpiCardProps
+
 export function KpiCard({ label, value, delta, sub }: KpiCardProps) {
   return (
     <div className="bg-card border border-border rounded-xl p-4">
@@ -196,6 +198,76 @@ export function AiProcessingSteps({ steps }: { steps: ProcessingStep[] }) {
       ))}
     </ul>
   )
+}
+
+/* ---------- Formatters --------------------------------------------------- */
+
+export const fmtUsd = (n: number) =>
+  `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+
+export const fmtDate = (iso: string) => {
+  if (!iso) return "—"
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" })
+}
+
+export const fmtRange = (start: string, end: string) =>
+  start === end ? fmtDate(start) : `${fmtDate(start)} – ${fmtDate(end)}`
+
+export const todayIso = () => new Date().toISOString().slice(0, 10)
+
+export const addDaysIso = (iso: string, days: number) => {
+  const d = new Date(iso)
+  d.setDate(d.getDate() + days)
+  return d.toISOString().slice(0, 10)
+}
+
+export const daysBetween = (start: string, end: string) => {
+  if (!start || !end) return 1
+  const s = new Date(start).getTime()
+  const e = new Date(end).getTime()
+  if (Number.isNaN(s) || Number.isNaN(e) || e < s) return 1
+  return Math.max(1, Math.round((e - s) / 86_400_000) + 1)
+}
+
+/* ---------- useProcessingAnimation --------------------------------------- */
+
+export function useProcessingAnimation(
+  labels: readonly string[],
+  isActive: boolean,
+  intervalMs = 1200,
+): { steps: ProcessingStep[]; isDone: boolean } {
+  const [statuses, setStatuses] = React.useState<ProcessingStep["status"][]>(
+    () => labels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"])
+  )
+  const [isDone, setIsDone] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!isActive) return
+    const count = labels.length
+    setIsDone(false)
+    setStatuses(labels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"]))
+    const timers: ReturnType<typeof setTimeout>[] = []
+    for (let i = 0; i < count; i++) {
+      timers.push(setTimeout(() => {
+        setStatuses((prev) => {
+          const next = [...prev] as ProcessingStep["status"][]
+          next[i] = "done"
+          if (i + 1 < count) next[i + 1] = "active"
+          return next
+        })
+      }, (i + 1) * intervalMs))
+    }
+    timers.push(setTimeout(() => setIsDone(true), count * intervalMs + 600))
+    return () => timers.forEach(clearTimeout)
+  }, [isActive, labels, intervalMs])
+
+  const steps: ProcessingStep[] = labels.map((label, i) => ({
+    label, status: statuses[i],
+  }))
+
+  return { steps, isDone }
 }
 
 /* ---------- HelpTooltip -------------------------------------------------- */

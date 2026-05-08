@@ -1,14 +1,7 @@
 "use client"
 
 import * as React from "react"
-import {
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip as RechartsTooltip,
-  XAxis,
-  YAxis,
-} from "recharts"
+import dynamic from "next/dynamic"
 import {
   CaretDown,
   Clock,
@@ -43,9 +36,13 @@ import {
   HelpTooltip,
   KpiCard,
   KpiRow,
-  type KpiCardProps,
+  fmtUsd,
+  useProcessingAnimation,
+  type KpiSpec,
   type ProcessingStep,
 } from "./_shared"
+
+const CostChart = dynamic(() => import("./cost-chart"), { ssr: false })
 
 /* ---------- Types -------------------------------------------------------- */
 
@@ -61,8 +58,6 @@ export interface QuoteRow {
   confidence: number
   status: QuoteStatus
 }
-
-export interface KpiSpec extends KpiCardProps {}
 
 export interface CostBreakdownItem { name: string; value: number }
 export interface OpRow { step: string; description: string; hours: number; cost: number }
@@ -83,7 +78,7 @@ export interface QuoteBuilderPresets {
 export interface QuotingToolProps {
   title: string
   subtitle: string
-  kpis: [KpiSpec, KpiSpec, KpiSpec, KpiSpec]
+  kpis: KpiSpec[]
   quotes: QuoteRow[]
   lineItemPresets?: QuoteBuilderPresets
   aiBannerHeadline: string
@@ -114,11 +109,6 @@ const STATUS_ICON: Record<QuoteStatus, React.ElementType> = {
 const marginIndicatorClass = (m: number) =>
   m >= 25 ? "bg-emerald-500" : m >= 15 ? "bg-amber-500" : "bg-rose-500"
 
-const fmtUsd = (n: number) =>
-  `$${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-
-const COST_BAR_FILL = "var(--foreground)"
-
 const DEFAULT_COST_BREAKDOWN: CostBreakdownItem[] = [
   { name: "Material", value: 2220 }, { name: "Machine time", value: 4290 },
   { name: "Labor", value: 1140 }, { name: "Setup", value: 680 },
@@ -148,7 +138,7 @@ const STEP_LABELS = [
   "Checking similar jobs",
   "Computing operations routing",
   "Validating margin targets",
-] as const
+]
 
 /* ---------- Tool --------------------------------------------------------- */
 
@@ -156,7 +146,7 @@ export default function QuotingTool(props: QuotingToolProps) {
   const {
     title, subtitle, kpis, quotes: seedQuotes, lineItemPresets,
     aiBannerHeadline, aiBannerBody, aiBannerActionLabel = "Apply suggestion",
-    processingLabels = STEP_LABELS as unknown as string[],
+    processingLabels = STEP_LABELS,
   } = props
 
   const [quotes, setQuotes] = React.useState<QuoteRow[]>(seedQuotes)
@@ -168,6 +158,15 @@ export default function QuotingTool(props: QuotingToolProps) {
   const visibleQuotes = React.useMemo(
     () => (activeTab === "All" ? quotes : quotes.filter((q) => q.status === activeTab)),
     [quotes, activeTab]
+  )
+
+  const statusCounts = React.useMemo(
+    () =>
+      quotes.reduce(
+        (acc, q) => { acc[q.status] = (acc[q.status] || 0) + 1; return acc },
+        {} as Record<QuoteStatus, number>
+      ),
+    [quotes]
   )
 
   const addQuote = (r: BuilderResult, status: QuoteStatus) => {
@@ -217,7 +216,7 @@ export default function QuotingTool(props: QuotingToolProps) {
             {tab}
             {tab !== "All" && (
               <span className="ml-1 text-muted-foreground tabular-nums">
-                {quotes.filter((q) => q.status === tab).length}
+                {statusCounts[tab as QuoteStatus]}
               </span>
             )}
           </Button>
@@ -283,18 +282,18 @@ function QuoteTable({
 }) {
   const cols = "grid-cols-[24px_1.6fr_2fr_1fr_1.2fr_80px_100px]"
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden">
+    <div className="bg-card border border-border rounded-xl overflow-hidden" role="table" data-section="quote-table">
       <div className="overflow-x-auto">
         <div className="min-w-[920px]">
-          <div className={cn("grid items-center gap-4 px-5 py-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground bg-muted/40", cols)}>
-            <span /><span>Client &amp; ID</span><span>Project</span>
-            <span className="text-right">Amount</span>
-            <span>Margin</span>
-            <span className="text-right">Conf.</span>
-            <span>Status</span>
+          <div role="row" className={cn("grid items-center gap-4 px-5 py-2 text-[11px] font-medium uppercase tracking-wider text-muted-foreground bg-muted/40", cols)}>
+            <span role="columnheader" /><span role="columnheader">Client &amp; ID</span><span role="columnheader">Project</span>
+            <span role="columnheader" className="text-right">Amount</span>
+            <span role="columnheader">Margin</span>
+            <span role="columnheader" className="text-right">Conf.</span>
+            <span role="columnheader">Status</span>
           </div>
           {quotes.length === 0 && (
-            <div className="px-5 py-10 text-sm text-muted-foreground text-center">
+            <div className="px-5 py-10 text-sm text-muted-foreground text-center border-t border-border">
               No quotes match this filter.
             </div>
           )}
@@ -307,16 +306,18 @@ function QuoteTable({
                   type="button"
                   onClick={() => onToggle(q.id)}
                   aria-expanded={expanded}
+                  aria-label={`Toggle details for ${q.client} ${q.quoteId}`}
+                  role="row"
                   className={cn("w-full text-left grid items-center gap-4 px-5 py-3 border-t border-border hover:bg-muted/30 transition-colors", cols)}
                 >
-                  <CaretDown weight="regular" className={cn("size-3.5 text-muted-foreground transition-transform", expanded && "rotate-180")} />
-                  <div className="min-w-0">
+                  <span role="cell"><CaretDown weight="regular" className={cn("size-3.5 text-muted-foreground transition-transform", expanded && "rotate-180")} /></span>
+                  <div role="cell" className="min-w-0">
                     <div className="text-sm font-medium truncate">{q.client}</div>
                     <div className="text-[11px] text-muted-foreground">{q.quoteId}</div>
                   </div>
-                  <div className="text-sm text-muted-foreground truncate">{q.project}</div>
-                  <div className="text-sm text-right tabular-nums font-medium">{fmtUsd(q.amount)}</div>
-                  <div className="flex items-center gap-2">
+                  <div role="cell" className="text-sm text-muted-foreground truncate">{q.project}</div>
+                  <div role="cell" className="text-sm text-right tabular-nums font-medium">{fmtUsd(q.amount)}</div>
+                  <div role="cell" className="flex items-center gap-2">
                     <Progress
                       value={Math.min((q.margin / 40) * 100, 100)}
                       className="h-1.5 w-12"
@@ -324,8 +325,8 @@ function QuoteTable({
                     />
                     <span className="text-xs text-muted-foreground tabular-nums">{q.margin.toFixed(1)}%</span>
                   </div>
-                  <div className="text-xs text-right tabular-nums text-muted-foreground">{q.confidence}%</div>
-                  <span className={cn("text-[11px] font-medium px-2 py-0.5 rounded-md w-fit inline-flex items-center gap-1", STATUS_CHIP[q.status])}>
+                  <div role="cell" className="text-xs text-right tabular-nums text-muted-foreground">{q.confidence}%</div>
+                  <span role="cell" className={cn("text-[11px] font-medium px-2 py-0.5 rounded-md w-fit inline-flex items-center gap-1", STATUS_CHIP[q.status])}>
                     <StatusIcon className="size-3" weight="regular" />
                     {q.status}
                   </span>
@@ -340,43 +341,25 @@ function QuoteTable({
   )
 }
 
-/* ---------- Cost chart + ops + similar jobs (shared sub-components) ----- */
-
-function CostChart({ data, height = 220, barSize = 14 }: { data: CostBreakdownItem[]; height?: number; barSize?: number }) {
-  return (
-    <div style={{ width: "100%", height }}>
-      <ResponsiveContainer>
-        <BarChart data={data} layout="vertical" margin={{ top: 0, right: 24, bottom: 0, left: 0 }}>
-          <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickFormatter={(v: number) => `$${(v / 1000).toFixed(1)}K`} />
-          <YAxis type="category" dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} width={96} />
-          <RechartsTooltip
-            contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
-            formatter={(value) => [`$${Number(value).toLocaleString()}`, ""]}
-          />
-          <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={barSize} fill={COST_BAR_FILL} />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
-  )
-}
+/* ---------- Ops + similar jobs (shared sub-components) ------------------- */
 
 function OperationsTable({ rows }: { rows: OpRow[] }) {
   const cols = "grid-cols-[1fr_2fr_60px_80px]"
   return (
     <div>
       <div className="text-sm font-semibold mb-2">Operations routing</div>
-      <div className="bg-card border border-border rounded-md overflow-hidden">
-        <div className={cn("grid gap-2 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground bg-muted/40", cols)}>
-          <span>Step</span><span>Description</span>
-          <span className="text-right">Hrs</span>
-          <span className="text-right">Cost</span>
+      <div className="bg-card border border-border rounded-md overflow-hidden" role="table">
+        <div role="row" className={cn("grid gap-2 px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground bg-muted/40", cols)}>
+          <span role="columnheader">Step</span><span role="columnheader">Description</span>
+          <span role="columnheader" className="text-right">Hrs</span>
+          <span role="columnheader" className="text-right">Cost</span>
         </div>
         {rows.map((r, i) => (
-          <div key={i} className={cn("grid gap-2 px-3 py-2 text-xs border-t border-border", cols)}>
-            <span className="font-medium">{r.step}</span>
-            <span className="text-muted-foreground truncate">{r.description}</span>
-            <span className="text-right tabular-nums">{r.hours.toFixed(1)}</span>
-            <span className="text-right tabular-nums">{fmtUsd(r.cost)}</span>
+          <div key={i} role="row" className={cn("grid gap-2 px-3 py-2 text-xs border-t border-border", cols)}>
+            <span role="cell" className="font-medium">{r.step}</span>
+            <span role="cell" className="text-muted-foreground truncate">{r.description}</span>
+            <span role="cell" className="text-right tabular-nums">{r.hours.toFixed(1)}</span>
+            <span role="cell" className="text-right tabular-nums">{fmtUsd(r.cost)}</span>
           </div>
         ))}
       </div>
@@ -474,35 +457,19 @@ function QuoteBuilderModal({
     certs: { as9100: true, itar: false, nadcap: false, iso9001: true },
   })
   const [marginPct, setMarginPct] = React.useState(28)
-  const [stepStatuses, setStepStatuses] = React.useState<ProcessingStep["status"][]>(
-    () => processingLabels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"])
-  )
+
+  const { steps: processingSteps, isDone: animationDone } =
+    useProcessingAnimation(processingLabels, step === 2, 1200)
+
+  React.useEffect(() => {
+    if (animationDone) setStep(3)
+  }, [animationDone])
 
   React.useEffect(() => {
     if (!open) return
     setStep(1)
     setMarginPct(28)
-    setStepStatuses(processingLabels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"]))
-  }, [open, processingLabels])
-
-  React.useEffect(() => {
-    if (step !== 2) return
-    const count = processingLabels.length
-    setStepStatuses(processingLabels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"]))
-    const timers: ReturnType<typeof setTimeout>[] = []
-    for (let i = 0; i < count; i++) {
-      timers.push(setTimeout(() => {
-        setStepStatuses((prev) => {
-          const next = [...prev] as ProcessingStep["status"][]
-          next[i] = "done"
-          if (i + 1 < count) next[i + 1] = "active"
-          return next
-        })
-      }, (i + 1) * 1200))
-    }
-    timers.push(setTimeout(() => setStep(3), count * 1200 + 600))
-    return () => timers.forEach(clearTimeout)
-  }, [step, processingLabels])
+  }, [open])
 
   const breakdown = presets?.costBreakdown ?? DEFAULT_COST_BREAKDOWN
   const operations = presets?.operations ?? DEFAULT_OPERATIONS
@@ -523,10 +490,6 @@ function QuoteBuilderModal({
     totalPrice: Math.round(totalPrice),
     margin: Math.round(marginPct * 10) / 10,
   }
-
-  const processingSteps: ProcessingStep[] = processingLabels.map((label, i) => ({
-    label, status: stepStatuses[i],
-  }))
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
