@@ -127,14 +127,15 @@ export default function MaintenanceIntelligence(
   )
 
   const handleConfirmPm = (event: ScheduledPmEvent) => {
+    const conflicts = event.affectedJobCount
     const newRow: PmRow = {
       machineId: event.machineId,
       description: `${event.pmType} — ${event.serviceProvider}`,
       windowStart: event.windowStart,
       windowEnd: event.windowEnd,
       durationHrs: HRS_PER_DURATION_LABEL[event.durationLabel] ?? 8,
-      priority: PRIORITY_FROM_CONFLICTS(0),
-      conflictsCount: 0,
+      priority: PRIORITY_FROM_CONFLICTS(conflicts),
+      conflictsCount: conflicts,
       status: "Scheduled",
     }
     setAppendedPms((prev) => [newRow, ...prev])

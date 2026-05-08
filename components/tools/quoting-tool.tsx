@@ -216,7 +216,7 @@ export default function QuotingTool(props: QuotingToolProps) {
             {tab}
             {tab !== "All" && (
               <span className="ml-1 text-muted-foreground tabular-nums">
-                {statusCounts[tab as QuoteStatus]}
+                {statusCounts[tab as QuoteStatus] ?? 0}
               </span>
             )}
           </Button>

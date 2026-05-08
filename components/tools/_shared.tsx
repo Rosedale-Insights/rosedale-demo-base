@@ -207,6 +207,12 @@ export const fmtUsd = (n: number) =>
 
 export const fmtDate = (iso: string) => {
   if (!iso) return "—"
+  const parts = iso.split("-")
+  if (parts.length === 3) {
+    const d = new Date(+parts[0], +parts[1] - 1, +parts[2])
+    if (!Number.isNaN(d.getTime()))
+      return d.toLocaleDateString(undefined, { month: "short", day: "numeric" })
+  }
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" })
@@ -218,8 +224,11 @@ export const fmtRange = (start: string, end: string) =>
 export const todayIso = () => new Date().toISOString().slice(0, 10)
 
 export const addDaysIso = (iso: string, days: number) => {
-  const d = new Date(iso)
-  d.setDate(d.getDate() + days)
+  const parts = iso.split("-")
+  const d = parts.length === 3
+    ? new Date(Date.UTC(+parts[0], +parts[1] - 1, +parts[2]))
+    : new Date(iso)
+  d.setUTCDate(d.getUTCDate() + days)
   return d.toISOString().slice(0, 10)
 }
 

@@ -48,6 +48,7 @@ export interface ScheduledPmEvent {
   windowEnd: string
   durationLabel: string
   serviceProvider: string
+  affectedJobCount: number
 }
 
 export interface SchedulePmModalProps {
@@ -259,6 +260,7 @@ export default function SchedulePmModal({
       windowEnd: form.windowEnd,
       durationLabel: form.duration,
       serviceProvider: form.serviceProvider,
+      affectedJobCount: affected.length,
     })
     onOpenChange(false)
   }
@@ -316,7 +318,7 @@ export default function SchedulePmModal({
               </Button>
               <Button
                 onClick={() => setStep(2)}
-                disabled={!form.machineId || !form.windowStart || !form.windowEnd}
+                disabled={!form.machineId || !form.windowStart || !form.windowEnd || form.windowEnd < form.windowStart}
               >
                 Analyze schedule
               </Button>

@@ -2,9 +2,9 @@
 
 **Branch:** `feat/tools-framework`
 **Framework spec:** `docs/superpowers/specs/2026-05-08-tools-framework-design.md`
-**UX references:**
-- `C:\Users\matte_uea9zx9\website-demo\docs\ux-maintenance-intelligence.md`
-- `C:\Users\matte_uea9zx9\website-demo\docs\ux-schedule-pm-tool.md`
+**UX references:** (external — see `website-demo` repo)
+- `docs/ux-maintenance-intelligence.md`
+- `docs/ux-schedule-pm-tool.md`
 **Depends on:** plan #1 (quoting-tool) — must merge first; this plan reuses `_shared.tsx` and most `components/ui/*` primitives.
 
 ## Overview
