@@ -1,42 +1,7 @@
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import { AppShell } from "./components/layout/AppShell";
-import { Receipt, Wrench, ShieldCheck } from "@phosphor-icons/react/dist/ssr";
-
-const tools = [
-  {
-    href: "/quoting",
-    icon: Receipt,
-    title: "Quoting",
-    description: "AI-assisted quote drafting and pipeline tracking",
-    stats: [
-      { label: "Win rate", value: "64.2%" },
-      { label: "Pipeline", value: "$1.8M" },
-      { label: "Open quotes", value: "12" },
-    ],
-  },
-  {
-    href: "/maintenance",
-    icon: Wrench,
-    title: "Maintenance Intelligence",
-    description: "AI-monitored fleet health and PM scheduling",
-    stats: [
-      { label: "Uptime", value: "94.2%" },
-      { label: "Overdue PMs", value: "1" },
-      { label: "Downtime avoided", value: "$48.2K" },
-    ],
-  },
-  {
-    href: "/vigilant",
-    icon: ShieldCheck,
-    title: "Vigilant Controller",
-    description: "AI-powered financial anomaly detection",
-    stats: [
-      { label: "Savings", value: "$232K" },
-      { label: "Resolved", value: "34" },
-      { label: "Pending", value: "6" },
-    ],
-  },
-];
+import { toolCards } from "./components/layout/tool-cards-config";
 
 export default function HomePage() {
   return (
@@ -47,8 +12,13 @@ export default function HomePage() {
           Rosedale OS — your tools at a glance.
         </p>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {tools.map((tool) => (
+        <div
+          className={cn(
+            "grid gap-4 sm:grid-cols-2",
+            toolCards.length >= 3 && "lg:grid-cols-3"
+          )}
+        >
+          {toolCards.map((tool) => (
             <Link
               key={tool.href}
               href={tool.href}
@@ -64,7 +34,9 @@ export default function HomePage() {
               <div className="flex gap-4">
                 {tool.stats.map((s) => (
                   <div key={s.label} className="min-w-0">
-                    <div className="text-sm font-semibold truncate">{s.value}</div>
+                    <div className="text-sm font-semibold truncate">
+                      {s.value}
+                    </div>
                     <div className="text-[11px] text-muted-foreground truncate">
                       {s.label}
                     </div>

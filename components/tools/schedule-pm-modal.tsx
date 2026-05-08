@@ -37,11 +37,11 @@ export type PmServiceProvider = "In-House" | "OEM" | "Third-Party"
 
 export interface ScheduledPmEvent {
   machineId: string
-  pmType: PmType
+  pmType: string
   windowStart: string
   windowEnd: string
-  durationLabel: PmDuration
-  serviceProvider: PmServiceProvider
+  durationLabel: string
+  serviceProvider: string
 }
 
 export interface SchedulePmModalProps {
@@ -49,6 +49,13 @@ export interface SchedulePmModalProps {
   onOpenChange: (open: boolean) => void
   machines: Array<{ id: string; name: string }>
   onConfirm: (event: ScheduledPmEvent) => void
+  pmTypes?: string[]
+  durations?: string[]
+  serviceProviders?: string[]
+  processingLabels?: string[]
+  checklistItems?: string[]
+  customerPool?: string[]
+  reroutePool?: string[]
 }
 
 /* ---------- Helpers / defaults ------------------------------------------ */
@@ -124,7 +131,12 @@ interface CostBreakdown {
   narrative: string
 }
 
-function deriveAffectedJobs(machineId: string, days: number): AffectedJob[] {
+function deriveAffectedJobs(
+  machineId: string,
+  days: number,
+  customers: string[],
+  reroutes: string[],
+): AffectedJob[] {
   const seed = (machineId.charCodeAt(machineId.length - 1) || 60) + days * 3
   const count = Math.min(4, Math.max(0, days - 1 + (seed % 3)))
   const out: AffectedJob[] = []
@@ -133,9 +145,9 @@ function deriveAffectedJobs(machineId: string, days: number): AffectedJob[] {
     const reroutable = (k % 3) !== 0
     out.push({
       jobId: `WO-${4800 + ((k * 13) % 200)}`,
-      customer: CUSTOMER_POOL[(k * 5) % CUSTOMER_POOL.length],
+      customer: customers[(k * 5) % customers.length],
       delayDays: 1 + ((k * 2) % Math.max(1, days)),
-      reroute: reroutable ? REROUTE_POOL[(k * 11) % REROUTE_POOL.length] : null,
+      reroute: reroutable ? reroutes[(k * 11) % reroutes.length] : null,
     })
   }
   return out
@@ -143,24 +155,25 @@ function deriveAffectedJobs(machineId: string, days: number): AffectedJob[] {
 
 function deriveCostSummary(
   machineId: string,
-  pmType: PmType,
-  duration: PmDuration,
+  pmType: string,
+  duration: string,
   days: number,
   affected: AffectedJob[]
 ): CostBreakdown {
-  const durationCost: Record<PmDuration, number> = {
+  const durationCost: Record<string, number> = {
     "4 hrs": 1200,
     "8 hrs": 2400,
     "1 day": 4800,
     "2 days": 8400,
   }
-  const typeMultiplier: Record<PmType, number> = {
+  const typeMultiplier: Record<string, number> = {
     Preventive: 1,
     Predictive: 1.15,
     Inspection: 0.7,
   }
+  const parsedCost = durationCost[duration] ?? (parseFloat(duration) || 1) * 2400
   const plannedPmCost = Math.round(
-    durationCost[duration] * typeMultiplier[pmType]
+    parsedCost * (typeMultiplier[pmType] ?? 1)
   )
   const seed = machineId.charCodeAt(0) || 60
   const unplannedRiskPerHour = 1500 + ((seed * 17) % 1200)
@@ -178,22 +191,27 @@ function deriveCostSummary(
 
 interface FormState {
   machineId: string
-  pmType: PmType
+  pmType: string
   windowStart: string
   windowEnd: string
-  duration: PmDuration
-  serviceProvider: PmServiceProvider
+  duration: string
+  serviceProvider: string
 }
 
-function defaultForm(machines: SchedulePmModalProps["machines"]): FormState {
+function defaultForm(
+  machines: SchedulePmModalProps["machines"],
+  pmTypes: string[],
+  durations: string[],
+  serviceProviders: string[],
+): FormState {
   const start = addDaysIso(todayIso(), 7)
   return {
     machineId: machines[0]?.id ?? "",
-    pmType: "Preventive",
+    pmType: pmTypes[0] ?? "Preventive",
     windowStart: start,
     windowEnd: addDaysIso(start, 1),
-    duration: "8 hrs",
-    serviceProvider: "In-House",
+    duration: durations[1] ?? durations[0] ?? "8 hrs",
+    serviceProvider: serviceProviders[0] ?? "In-House",
   }
 }
 
@@ -202,48 +220,58 @@ export default function SchedulePmModal({
   onOpenChange,
   machines,
   onConfirm,
+  pmTypes = PM_TYPES,
+  durations = DURATIONS,
+  serviceProviders = PROVIDERS,
+  processingLabels = PROCESSING_LABELS as unknown as string[],
+  checklistItems = PM_CHECKLIST as unknown as string[],
+  customerPool = CUSTOMER_POOL,
+  reroutePool = REROUTE_POOL,
 }: SchedulePmModalProps) {
   const [step, setStep] = React.useState<1 | 2 | 3>(1)
-  const [form, setForm] = React.useState<FormState>(() => defaultForm(machines))
+  const [form, setForm] = React.useState<FormState>(() =>
+    defaultForm(machines, pmTypes, durations, serviceProviders)
+  )
   const [stepStatuses, setStepStatuses] = React.useState<
     ProcessingStep["status"][]
-  >(["active", "pending", "pending", "pending"])
+  >(() => processingLabels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"]))
   const [checklist, setChecklist] = React.useState<boolean[]>(
-    () => PM_CHECKLIST.map(() => false)
+    () => checklistItems.map(() => false)
   )
 
   React.useEffect(() => {
     if (!open) return
     setStep(1)
-    setForm(defaultForm(machines))
-    setChecklist(PM_CHECKLIST.map(() => false))
-    setStepStatuses(["active", "pending", "pending", "pending"])
-  }, [open, machines])
+    setForm(defaultForm(machines, pmTypes, durations, serviceProviders))
+    setChecklist(checklistItems.map(() => false))
+    setStepStatuses(processingLabels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"]))
+  }, [open, machines, pmTypes, durations, serviceProviders, checklistItems, processingLabels])
 
   React.useEffect(() => {
     if (step !== 2) return
-    setStepStatuses(["active", "pending", "pending", "pending"])
+    const count = processingLabels.length
+    setStepStatuses(processingLabels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"]))
     const timers: ReturnType<typeof setTimeout>[] = []
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < count; i++) {
       timers.push(
         setTimeout(() => {
           setStepStatuses((prev) => {
             const next = [...prev] as ProcessingStep["status"][]
             next[i] = "done"
-            if (i + 1 < 4) next[i + 1] = "active"
+            if (i + 1 < count) next[i + 1] = "active"
             return next
           })
         }, (i + 1) * 1100)
       )
     }
-    timers.push(setTimeout(() => setStep(3), 5000))
+    timers.push(setTimeout(() => setStep(3), count * 1100 + 600))
     return () => timers.forEach(clearTimeout)
-  }, [step])
+  }, [step, processingLabels])
 
   const days = daysBetween(form.windowStart, form.windowEnd)
   const affected = React.useMemo(
-    () => deriveAffectedJobs(form.machineId, days),
-    [form.machineId, days]
+    () => deriveAffectedJobs(form.machineId, days, customerPool, reroutePool),
+    [form.machineId, days, customerPool, reroutePool]
   )
   const cost = React.useMemo(
     () =>
@@ -257,7 +285,7 @@ export default function SchedulePmModal({
     [form.machineId, form.pmType, form.duration, days, affected]
   )
 
-  const processingSteps: ProcessingStep[] = PROCESSING_LABELS.map(
+  const processingSteps: ProcessingStep[] = processingLabels.map(
     (label, i) => ({ label, status: stepStatuses[i] })
   )
 
@@ -296,7 +324,14 @@ export default function SchedulePmModal({
         </DialogHeader>
 
         {step === 1 && (
-          <ConfigureForm form={form} machines={machines} setField={setField} />
+          <ConfigureForm
+            form={form}
+            machines={machines}
+            setField={setField}
+            pmTypes={pmTypes}
+            durations={durations}
+            serviceProviders={serviceProviders}
+          />
         )}
         {step === 2 && (
           <div className="py-6 px-2">
@@ -310,6 +345,7 @@ export default function SchedulePmModal({
             cost={cost}
             checklist={checklist}
             setChecklist={setChecklist}
+            checklistItems={checklistItems}
           />
         )}
 
@@ -352,10 +388,16 @@ function ConfigureForm({
   form,
   machines,
   setField,
+  pmTypes,
+  durations,
+  serviceProviders,
 }: {
   form: FormState
   machines: SchedulePmModalProps["machines"]
   setField: <K extends keyof FormState>(key: K, val: FormState[K]) => void
+  pmTypes: string[]
+  durations: string[]
+  serviceProviders: string[]
 }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -384,9 +426,9 @@ function ConfigureForm({
           type="single"
           size="sm"
           value={form.pmType}
-          onValueChange={(v) => v && setField("pmType", v as PmType)}
+          onValueChange={(v) => v && setField("pmType", v)}
         >
-          {PM_TYPES.map((t) => (
+          {pmTypes.map((t) => (
             <ToggleGroupItem key={t} value={t}>
               {t}
             </ToggleGroupItem>
@@ -418,13 +460,13 @@ function ConfigureForm({
         <Label htmlFor="pm-duration">Estimated duration</Label>
         <Select
           value={form.duration}
-          onValueChange={(v) => setField("duration", v as PmDuration)}
+          onValueChange={(v) => setField("duration", v)}
         >
           <SelectTrigger id="pm-duration">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {DURATIONS.map((d) => (
+            {durations.map((d) => (
               <SelectItem key={d} value={d}>
                 {d}
               </SelectItem>
@@ -439,11 +481,9 @@ function ConfigureForm({
           type="single"
           size="sm"
           value={form.serviceProvider}
-          onValueChange={(v) =>
-            v && setField("serviceProvider", v as PmServiceProvider)
-          }
+          onValueChange={(v) => v && setField("serviceProvider", v)}
         >
-          {PROVIDERS.map((p) => (
+          {serviceProviders.map((p) => (
             <ToggleGroupItem key={p} value={p}>
               {p}
             </ToggleGroupItem>
@@ -462,12 +502,14 @@ function ReviewBody({
   cost,
   checklist,
   setChecklist,
+  checklistItems,
 }: {
   form: FormState
   affected: AffectedJob[]
   cost: CostBreakdown
   checklist: boolean[]
   setChecklist: React.Dispatch<React.SetStateAction<boolean[]>>
+  checklistItems: string[]
 }) {
   return (
     <div className="flex flex-col gap-5">
@@ -492,7 +534,7 @@ function ReviewBody({
           <div>
             <div className="text-sm font-semibold mb-2">PM checklist</div>
             <ul className="bg-card border border-border rounded-md divide-y divide-border">
-              {PM_CHECKLIST.map((item, i) => (
+              {checklistItems.map((item, i) => (
                 <li key={item} className="flex items-center gap-2 px-3 py-2">
                   <Checkbox
                     id={`pm-task-${i}`}

@@ -90,6 +90,7 @@ export interface QuotingToolProps {
   aiBannerHeadline: string
   aiBannerBody: string
   aiBannerActionLabel?: string
+  processingLabels?: string[]
 }
 
 /* ---------- Helpers / defaults ------------------------------------------ */
@@ -153,7 +154,11 @@ const STEP_LABELS = [
 /* ---------- Tool --------------------------------------------------------- */
 
 export default function QuotingTool(props: QuotingToolProps) {
-  const { title, subtitle, kpis, quotes: seedQuotes, lineItemPresets, aiBannerHeadline, aiBannerBody, aiBannerActionLabel = "Apply suggestion" } = props
+  const {
+    title, subtitle, kpis, quotes: seedQuotes, lineItemPresets,
+    aiBannerHeadline, aiBannerBody, aiBannerActionLabel = "Apply suggestion",
+    processingLabels = STEP_LABELS as unknown as string[],
+  } = props
 
   const [quotes, setQuotes] = React.useState<QuoteRow[]>(seedQuotes)
   const [activeTab, setActiveTab] = React.useState<FilterTab>("All")
@@ -256,6 +261,7 @@ export default function QuotingTool(props: QuotingToolProps) {
         open={modalOpen}
         onOpenChange={setModalOpen}
         presets={lineItemPresets}
+        processingLabels={processingLabels}
         onSaveDraft={(r) => addQuote(r, "Draft")}
         onSendToCustomer={(r) => addQuote(r, "Sent")}
       />
@@ -452,12 +458,14 @@ function QuoteBuilderModal({
   open,
   onOpenChange,
   presets,
+  processingLabels,
   onSaveDraft,
   onSendToCustomer,
 }: {
   open: boolean
   onOpenChange: (v: boolean) => void
   presets?: QuoteBuilderPresets
+  processingLabels: string[]
   onSaveDraft: (r: BuilderResult) => void
   onSendToCustomer: (r: BuilderResult) => void
 }) {
@@ -471,34 +479,35 @@ function QuoteBuilderModal({
     certs: { as9100: true, itar: false, nadcap: false, iso9001: true },
   })
   const [marginPct, setMarginPct] = React.useState(28)
-  const [stepStatuses, setStepStatuses] = React.useState<ProcessingStep["status"][]>([
-    "active", "pending", "pending", "pending",
-  ])
+  const [stepStatuses, setStepStatuses] = React.useState<ProcessingStep["status"][]>(
+    () => processingLabels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"])
+  )
 
   React.useEffect(() => {
     if (!open) return
     setStep(1)
     setMarginPct(28)
-    setStepStatuses(["active", "pending", "pending", "pending"])
-  }, [open])
+    setStepStatuses(processingLabels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"]))
+  }, [open, processingLabels])
 
   React.useEffect(() => {
     if (step !== 2) return
-    setStepStatuses(["active", "pending", "pending", "pending"])
+    const count = processingLabels.length
+    setStepStatuses(processingLabels.map((_, i) => (i === 0 ? "active" : "pending") as ProcessingStep["status"]))
     const timers: ReturnType<typeof setTimeout>[] = []
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < count; i++) {
       timers.push(setTimeout(() => {
         setStepStatuses((prev) => {
           const next = [...prev] as ProcessingStep["status"][]
           next[i] = "done"
-          if (i + 1 < 4) next[i + 1] = "active"
+          if (i + 1 < count) next[i + 1] = "active"
           return next
         })
       }, (i + 1) * 1200))
     }
-    timers.push(setTimeout(() => setStep(3), 5000))
+    timers.push(setTimeout(() => setStep(3), count * 1200 + 600))
     return () => timers.forEach(clearTimeout)
-  }, [step])
+  }, [step, processingLabels])
 
   const breakdown = presets?.costBreakdown ?? DEFAULT_COST_BREAKDOWN
   const operations = presets?.operations ?? DEFAULT_OPERATIONS
@@ -520,7 +529,7 @@ function QuoteBuilderModal({
     margin: Math.round(marginPct * 10) / 10,
   }
 
-  const processingSteps: ProcessingStep[] = STEP_LABELS.map((label, i) => ({
+  const processingSteps: ProcessingStep[] = processingLabels.map((label, i) => ({
     label, status: stepStatuses[i],
   }))
 
